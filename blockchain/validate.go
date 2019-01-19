@@ -38,9 +38,23 @@ const (
 	// coinbases to start with the serialized block height.
 	serializedHeightVersion = 2
 
-	// baseSubsidy is the starting subsidy amount for mined blocks.  This
-	// value is halved every SubsidyHalvingInterval blocks.
-	baseSubsidy = 50 * btcutil.SatoshiPerBitcoin
+	// baseSubsidy is the starting subsidy amount for mined blocks from genesis to block 120,000.
+	baseSubsidy = 512 * btcutil.SatoshiPerBitcoin
+
+	// baseSubsidy120k is the starting subsidy amount for mined blocks from block 120,000 to 150,000.
+	baseSubsidy120k = 250 * btcutil.SatoshiPerBitcoin
+
+	// baseSubsidy150k is the starting subsidy amount for mined blocks from block 150,000 onwards.
+	baseSubsidy150k = 25 * btcutil.SatoshiPerBitcoin
+
+	// minimumSubsidy is the minimum subsidy amount for any block
+	minimumSubsidy = 5 * btcutil.SatoshiPerBitcoin
+
+	// genesis block
+	block0Subsidy = 0 * btcutil.SatoshiPerBitcoin
+
+	// premine
+	block1Subsidy = 240640 * btcutil.SatoshiPerBitcoin
 )
 
 var (
@@ -58,6 +72,10 @@ var (
 	// set forth in BIP0030.  It is defined as a package level variable to
 	// avoid the need to create a new instance every time a check is needed.
 	block91880Hash = newHashFromStr("00000000000743f190a18c5577a3c2d2a1f610ae9601ac046a38084ccb7cd721")
+
+	// heightOfMinSubsidy is block number starting from which subsidy equals
+	// minimumSubsidy. It will be set after grsd reaches this block.
+	heightOfMinSubsidy int32 = math.MaxInt32
 )
 
 // isNullOutpoint determines whether or not a previous transaction output point
@@ -181,23 +199,67 @@ func isBIP0030Node(node *blockNode) bool {
 	return false
 }
 
+func calcBlockSubsidy(height int32) int64 {
+	if height == 0 {
+		return block0Subsidy
+	}
+	if height == 1 {
+		return block1Subsidy
+	}
+	// Subsidy is reduced by 6% every 10080 blocks, which will occur approximately every 1 week
+	subsidy := int64(baseSubsidy)
+	exponent := int(height / 10080)
+	for i := 0; i < exponent; i++ {
+		subsidy = subsidy * 47 / 50
+	}
+	if subsidy < minimumSubsidy {
+		return minimumSubsidy
+	}
+	return subsidy
+}
+
+func calcBlockSubsidy120k(height int32) int64 {
+	// Subsidy is reduced by 10% every day (1440 blocks)
+	subsidy := int64(baseSubsidy120k)
+	exponent := int((height - 120000) / 1440)
+	for i := 0; i < exponent; i++ {
+		subsidy = subsidy * 45 / 50
+	}
+	return subsidy
+}
+
+func calcBlockSubsidy150k(height int32) int64 {
+	// Subsidy is reduced by 1% every week (10080 blocks)
+	if height < heightOfMinSubsidy {
+		subsidy := int64(baseSubsidy150k)
+		exponent := int((height - 150000) / 10080)
+		for i := 0; i < exponent; i++ {
+			subsidy = subsidy * 99 / 100
+		}
+		if subsidy >= minimumSubsidy {
+			return subsidy
+		}
+		if height < heightOfMinSubsidy {
+			heightOfMinSubsidy = height
+		}
+	}
+	return minimumSubsidy
+}
+
 // CalcBlockSubsidy returns the subsidy amount a block at the provided height
 // should have. This is mainly used for determining how much the coinbase for
 // newly generated blocks awards as well as validating the coinbase for blocks
 // has the expected value.
 //
-// The subsidy is halved every SubsidyReductionInterval blocks.  Mathematically
-// this is: baseSubsidy / 2^(height/SubsidyReductionInterval)
-//
-// At the target block generation rate for the main network, this is
-// approximately every 4 years.
+// https://github.com/Groestlcoin/groestlcoin/blob/2.16.3/src/groestlcoin.cpp#L54-L126
 func CalcBlockSubsidy(height int32, chainParams *chaincfg.Params) int64 {
-	if chainParams.SubsidyReductionInterval == 0 {
-		return baseSubsidy
+	if height >= 150000 {
+		return calcBlockSubsidy150k(height)
 	}
-
-	// Equivalent to: baseSubsidy / 2^(height/subsidyHalvingInterval)
-	return baseSubsidy >> uint(height/chainParams.SubsidyReductionInterval)
+	if height >= 120000 {
+		return calcBlockSubsidy120k(height)
+	}
+	return calcBlockSubsidy(height)
 }
 
 // CheckTransactionSanity performs some preliminary checks on a transaction to
@@ -644,19 +706,23 @@ func checkSerializedHeight(coinbaseTx *btcutil.Tx, wantHeight int32) error {
 func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode *blockNode, flags BehaviorFlags) error {
 	fastAdd := flags&BFFastAdd == BFFastAdd
 	if !fastAdd {
-		// Ensure the difficulty specified in the block header matches
-		// the calculated difficulty based on the previous block and
-		// difficulty retarget rules.
-		expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode,
-			header.Timestamp)
-		if err != nil {
-			return err
-		}
-		blockDifficulty := header.Bits
-		if blockDifficulty != expectedDifficulty {
-			str := "block difficulty of %d is not the expected value of %d"
-			str = fmt.Sprintf(str, blockDifficulty, expectedDifficulty)
-			return ruleError(ErrUnexpectedDifficulty, str)
+		// Do not validate proof-of-work before switch to DGW3, because
+		// original DGW was not deterministic
+		if prevNode.height+1 >= b.chainParams.DGW3SwitchHeight {
+			// Ensure the difficulty specified in the block header matches
+			// the calculated difficulty based on the previous block and
+			// difficulty retarget rules.
+			expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode,
+				header.Timestamp)
+			if err != nil {
+				return err
+			}
+			blockDifficulty := header.Bits
+			if blockDifficulty != expectedDifficulty {
+				str := "block difficulty of %d is not the expected value of %d"
+				str = fmt.Sprintf(str, blockDifficulty, expectedDifficulty)
+				return ruleError(ErrUnexpectedDifficulty, str)
+			}
 		}
 
 		// Ensure the timestamp for the block header is after the

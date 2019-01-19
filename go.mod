@@ -1,6 +1,7 @@
 module github.com/btcsuite/btcd
 
 require (
+	github.com/Groestlcoin/go-groestl-hash v0.0.0-20181012171753-790653ac190c
 	github.com/aead/siphash v1.0.1 // indirect
 	github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f
 	github.com/btcsuite/btcutil v0.0.0-20190207003914-4c204d697803
@@ -16,4 +17,9 @@ require (
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	golang.org/x/crypto v0.0.0-20170930174604-9419663f5a44
+)
+
+replace (
+	github.com/btcsuite/btcd => ./
+	github.com/btcsuite/btcutil => ../grsutil
 )

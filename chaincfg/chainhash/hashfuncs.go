@@ -5,7 +5,10 @@
 
 package chainhash
 
-import "crypto/sha256"
+import (
+	"crypto/sha256"
+	"github.com/Groestlcoin/go-groestl-hash/groestl"
+)
 
 // HashB calculates hash(b) and returns the resulting bytes.
 func HashB(b []byte) []byte {
@@ -30,4 +33,24 @@ func DoubleHashB(b []byte) []byte {
 func DoubleHashH(b []byte) Hash {
 	first := sha256.Sum256(b)
 	return Hash(sha256.Sum256(first[:]))
+}
+
+func DoubleGroestlB(b []byte) []byte {
+	var h1, h2 [64]byte
+	g := groestl.New()
+	g.Write(b)
+	g.Close(h1[:], 0, 0)
+	g.Write(h1[:])
+	g.Close(h2[:], 0, 0)
+	return h2[:32]
+}
+func DoubleGroestlH(b []byte) (ret Hash) {
+	var h1, h2 [64]byte
+	g := groestl.New()
+	g.Write(b)
+	g.Close(h1[:], 0, 0)
+	g.Write(h1[:])
+	g.Close(h2[:], 0, 0)
+	copy(ret[:], h2[:32])
+	return
 }

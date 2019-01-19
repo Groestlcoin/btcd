@@ -2015,7 +2015,7 @@ func opcodeHash256(op *parsedOpcode, vm *Engine) error {
 		return err
 	}
 
-	vm.dstack.PushByteArray(chainhash.DoubleHashB(buf))
+	vm.dstack.PushByteArray(chainhash.DoubleGroestlB(buf))
 	return nil
 }
 
