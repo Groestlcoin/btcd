@@ -96,8 +96,6 @@ const (
 	// includes the deployment of BIPS 141, 142, 144, 145, 147 and 173.
 	DeploymentSegwit
 
-	DeploymentBIP65
-
 	// NOTE: DefinedDeployments must always come last since it is used to
 	// determine how many defined deployments there currently are.
 
@@ -284,11 +282,6 @@ var MainNetParams = Params{
 			StartTime:  1484956800, // Jan 21, 2017
 			ExpireTime: 1498003200, // Jun 21, 2017
 		},
-		DeploymentBIP65: {
-			BitNumber:  5,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
-		},
 	},
 
 	// Mempool parameters
@@ -362,11 +355,6 @@ var RegressionNetParams = Params{
 			BitNumber:  1,
 			StartTime:  0,             // Always available for vote
 			ExpireTime: math.MaxInt64, // Never expires.
-		},
-		DeploymentBIP65: {
-			BitNumber:  5,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
 		},
 	},
 
@@ -450,11 +438,6 @@ var TestNet3Params = Params{
 			StartTime:  1484956800, // Jan 21, 2017
 			ExpireTime: 1498003200, // Jun 21, 2017
 		},
-		DeploymentBIP65: {
-			BitNumber:  5,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
-		},
 	},
 
 	// Mempool parameters
@@ -532,11 +515,6 @@ var SimNetParams = Params{
 			BitNumber:  1,
 			StartTime:  0,             // Always available for vote
 			ExpireTime: math.MaxInt64, // Never expires.
-		},
-		DeploymentBIP65: {
-			BitNumber:  5,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
 		},
 	},
 
