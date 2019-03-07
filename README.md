@@ -48,7 +48,7 @@ NOTE: Do not use `go install` command, because it will install the binaries unde
   not already add the bin directory to your system path during Go installation,
   we recommend you do so now.
 
-- If you do not have GNU make in Windows just type commands from build section of Makefile:
+- If you do not have GNU make in Windows just type commands from `build` section of Makefile:
 
 ```
 C:\grsd> go build -o grsd .
