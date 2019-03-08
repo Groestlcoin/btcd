@@ -86,18 +86,8 @@ $ grsctl getinfo
 
 ## Documentation
 
-The documentation is a work-in-progress and it is not updated from btcd.  So
-keep in mind to replace btcd/btcctl with grsd/grsctl in command names and paths,
-and use GRS ports (see next section).  The documentation is located in the
+The documentation is a work-in-progress.  It is located in the
 [docs](https://github.com/Groestlcoin/grsd/tree/grssuite/docs) folder.
-
-## Ports
-
-| - | Bitcoin mainnet | Groestlcoin mainnet | Bitcoin testnet | Groestlcoin testnet
- ---------------------- | ---- | ---- | ----- | -----
-**Wallet/Original RPC** | 8332 | 1441 | 18332 | 17766
-**P2P RPC**             | 8333 | 1331 | 18333 | 17777
-**btcd/grsd RPC**       | 8334 | 1444 | 18334 | 17764
 
 ## License
 
