@@ -36,3 +36,5 @@ _testmain.go
 grsd
 grsctl
 addblock
+findcheckpoint
+gencerts

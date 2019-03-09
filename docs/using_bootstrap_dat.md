@@ -73,6 +73,6 @@ C:\> "%PROGRAMFILES%\Grsd Suite\grsd\addblock" -i C:\Path\To\bootstrap.dat
 **Linux/Unix/BSD/POSIX:**
 ```bash
 $ cd grsd
-$ make addblock
+$ make build-all
 $ ./addblock -i /path/to/bootstrap.dat
 ```
