@@ -137,7 +137,7 @@ func TestTx(t *testing.T) {
 // TestTxHash tests the ability to generate the hash of a transaction accurately.
 func TestTxHash(t *testing.T) {
 	// Hash of first transaction from block 113875.
-	hashStr := "f051e59b5e2503ac626d03aaeac8ab7be2d72ba4b7e97119c5852d70d52dcb86"
+	hashStr := "bd554604399cd472d83b1b1aefe2593d4318e07eda39640ba05d4a9fde35d721"
 	wantHash, err := chainhash.NewHashFromStr(hashStr)
 	if err != nil {
 		t.Errorf("NewHashFromStr: %v", err)
@@ -185,13 +185,13 @@ func TestTxHash(t *testing.T) {
 // TestTxSha tests the ability to generate the wtxid, and txid of a transaction
 // with witness inputs accurately.
 func TestWTxSha(t *testing.T) {
-	hashStrTxid := "0f167d1385a84d1518cfee208b653fc9163b605ccf1b75347e2850b3e2eb19f3"
+	hashStrTxid := "dd7476583fa20a974d1995c0b9367a78b523cc72fcba588ce2f5ece5ede9b8f2"
 	wantHashTxid, err := chainhash.NewHashFromStr(hashStrTxid)
 	if err != nil {
 		t.Errorf("NewShaHashFromStr: %v", err)
 		return
 	}
-	hashStrWTxid := "0858eab78e77b6b033da30f46699996396cf48fcf625a783c85a51403e175e74"
+	hashStrWTxid := "691371f85bceb15b9563f2d1656dcb86fa5dcaf40ac9dc34a4ec7c34b5cd2473"
 	wantHashWTxid, err := chainhash.NewHashFromStr(hashStrWTxid)
 	if err != nil {
 		t.Errorf("NewShaHashFromStr: %v", err)

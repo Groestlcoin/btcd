@@ -82,10 +82,10 @@ func TestHaveBlock(t *testing.T) {
 		{hash: chaincfg.MainNetParams.GenesisHash.String(), want: true},
 
 		// Block 3a should be present (on a side chain).
-		{hash: "00000000474284d20067a4d33f6a02284e6ef70764a3a26d6a5b9df52ef663dd", want: true},
+		{hash: "00000a95e286a4373399ab24072b9f71e1cf1f239ef19eba94d6ad4bd0c05a6d", want: true},
 
 		// Block 100000 should be present (as an orphan).
-		{hash: "000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506", want: true},
+		{hash: "00000000012a42b54c21a7ada3b851c96a248348779b27db451cf6fda69916bb", want: true},
 
 		// Random hashes should not be available.
 		{hash: "123", want: false},

@@ -232,7 +232,7 @@ func TestReadMessageWireErrors(t *testing.T) {
 	// contained in the message.  Claim there is two, but don't provide
 	// them.  At the same time, forge the header fields so the message is
 	// otherwise accurate.
-	badMessageBytes := makeHeader(btcnet, "addr", 1, 0xeaadc31c)
+	badMessageBytes := makeHeader(btcnet, "addr", 1, 0x6acbf0cc)
 	badMessageBytes = append(badMessageBytes, 0x2)
 
 	// Wire encoded bytes for a message which the header claims has 15k

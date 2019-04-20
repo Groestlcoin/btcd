@@ -1482,7 +1482,7 @@ func Generate(includeLargeReorg bool) (tests [][]TestInstance, err error) {
 	//                 \-> b49(14)
 	g.setTip("b43")
 	g.nextBlock("b49", outs[14], func(b *wire.MsgBlock) {
-		b.Header.Bits--
+		b.Header.Bits = 0x217fffff
 	})
 	rejected(blockchain.ErrUnexpectedDifficulty)
 

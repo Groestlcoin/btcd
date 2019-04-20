@@ -13,5 +13,8 @@ install: build
 reset-mod:
 	git checkout go.mod go.sum
 
+test:
+	GO111MODULE=on go test -tags="rpctest" ./...
+
 clean:
 	rm -f grsd grsctl btcd addblock findcheckpoint gencerts

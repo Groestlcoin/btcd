@@ -59,8 +59,9 @@ func TestCalcPriority(t *testing.T) {
 	// commonSourceTx1 is a valid transaction used in the tests below as an
 	// input to transactions that are having their priority calculated.
 	//
-	// From block 7 in main blockchain.
-	// tx 0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9
+	// From block 7 in BTC main blockchain.
+	// BTC tx hash 0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9
+	// GRS tx hash 12ea7bbfe1234d610cfe75c157dd10c2ae7f27eedf068a1dd7eb124d9c8a172d
 	commonSourceTx1 := &wire.MsgTx{
 		Version: 1,
 		TxIn: []*wire.TxIn{{
@@ -89,9 +90,7 @@ func TestCalcPriority(t *testing.T) {
 		Version: 1,
 		TxIn: []*wire.TxIn{{
 			PreviousOutPoint: wire.OutPoint{
-				Hash: *newHashFromStr("0437cd7f8525ceed232435" +
-					"9c2d0ba26006d92d856a9c20fa0241106ee5" +
-					"a597c9"),
+				Hash:  *newHashFromStr("12ea7bbfe1234d610cfe75c157dd10c2ae7f27eedf068a1dd7eb124d9c8a172d"),
 				Index: 0,
 			},
 			SignatureScript: hexToBytes("47304402204e45e16932b8af" +
