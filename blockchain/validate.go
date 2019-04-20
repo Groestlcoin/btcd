@@ -51,10 +51,10 @@ const (
 	minimumSubsidy = 5 * btcutil.SatoshiPerBitcoin
 
 	// genesis block
-	block0Subsidy = 0 * btcutil.SatoshiPerBitcoin
+	Block0Subsidy = 0 * btcutil.SatoshiPerBitcoin
 
 	// premine
-	block1Subsidy = 240640 * btcutil.SatoshiPerBitcoin
+	Block1Subsidy = 240640 * btcutil.SatoshiPerBitcoin
 )
 
 var (
@@ -201,10 +201,10 @@ func isBIP0030Node(node *blockNode) bool {
 
 func calcBlockSubsidy(height int32) int64 {
 	if height == 0 {
-		return block0Subsidy
+		return Block0Subsidy
 	}
 	if height == 1 {
-		return block1Subsidy
+		return Block1Subsidy
 	}
 	// Subsidy is reduced by 6% every 10080 blocks, which will occur approximately every 1 week
 	subsidy := int64(baseSubsidy)
@@ -719,8 +719,8 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 			}
 			blockDifficulty := header.Bits
 			if blockDifficulty != expectedDifficulty {
-				str := "block difficulty of %d is not the expected value of %d"
-				str = fmt.Sprintf(str, blockDifficulty, expectedDifficulty)
+				str := "block %d difficulty of %x is not the expected value of %x (DGW3 starting block %d)"
+				str = fmt.Sprintf(str, prevNode.height+1, blockDifficulty, expectedDifficulty, b.chainParams.DGW3SwitchHeight)
 				return ruleError(ErrUnexpectedDifficulty, str)
 			}
 		}

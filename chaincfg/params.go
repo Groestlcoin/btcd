@@ -27,8 +27,8 @@ var (
 	mainPowLimit = new(big.Int).Sub(new(big.Int).Lsh(bigOne, 236), bigOne)
 
 	// regressionPowLimit is the highest proof of work value a GRS block
-	// can have for the regression test network.  It is the value 2^248 - 1.
-	regressionPowLimit = new(big.Int).Sub(new(big.Int).Lsh(bigOne, 248), bigOne)
+	// can have for the regression test network.  It is the value 2^255 - 1.
+	regressionPowLimit = new(big.Int).Sub(new(big.Int).Lsh(bigOne, 255), bigOne)
 
 	// testNet3PowLimit is the highest proof of work value a GRS block
 	// can have for the test network (version 3).  It is the value
@@ -325,12 +325,12 @@ var RegressionNetParams = Params{
 	GenesisBlock:             &regTestGenesisBlock,
 	GenesisHash:              &regTestGenesisHash,
 	PowLimit:                 regressionPowLimit,
-	PowLimitBits:             0x2000ffff,
+	PowLimitBits:             0x207fffff,
 	CoinbaseMaturity:         100,
 	BIP0034Height:            100000000,
 	BIP0065Height:            1351,
 	BIP0066Height:            1251,
-	DGW3SwitchHeight:         100000,
+	DGW3SwitchHeight:         5000,
 	TargetTimespan:           time.Second * 24,
 	TargetTimePerBlock:       time.Second,
 	RetargetAdjustmentFactor: 3,
@@ -499,7 +499,7 @@ var SimNetParams = Params{
 	BIP0034Height:            0, // Always active on simnet
 	BIP0065Height:            0, // Always active on simnet
 	BIP0066Height:            0, // Always active on simnet
-	DGW3SwitchHeight:         0,
+	DGW3SwitchHeight:         5000,
 	CoinbaseMaturity:         100,
 	TargetTimespan:           time.Minute * 24, // 24 minutes
 	TargetTimePerBlock:       time.Minute,      // 1 minutes

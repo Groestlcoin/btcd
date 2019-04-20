@@ -219,8 +219,20 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time) (uint32, error) {
-	// Genesis block or not enough blocks mined
+	// Not enough blocks mined to calculate difficulty. Note: There is no
+	// off-by-one error here, genesis block is not used in the calculation.
 	if lastNode == nil || lastNode.height < b.blocksPerRetarget {
+		return b.chainParams.PowLimitBits, nil
+	}
+
+	// Do not bother calculating difficulty before switch to DGW3, because
+	// it is impossible to validate difficulty of the original DGW
+	// algorithm. Nice side effect: On regtest and simnet networks we can
+	// control number of instamineble blocks. Difficulty rises very quickly
+	// if we use DGW3 from the beginning. This happens due to small
+	// retarget window (of 24 blocks) unlike Bitcoin where it is 2016
+	// blocks.
+	if lastNode.height+1 < b.chainParams.DGW3SwitchHeight {
 		return b.chainParams.PowLimitBits, nil
 	}
 
