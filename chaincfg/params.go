@@ -227,11 +227,10 @@ var MainNetParams = Params{
 	Net:         wire.MainNet,
 	DefaultPort: "1331",
 	DNSSeeds: []DNSSeed{
-		{"groestlcoin.org", false},
-		{"electrum1.groestlcoin.org", false},
-		{"electrum2.groestlcoin.org", false},
-		{"jswallet.groestlcoin.org", false},
-		{"groestlsight.groestlcoin.org", false},
+		{"dnsseed1.groestlcoin.org", true},
+		{"dnsseed2.groestlcoin.org", true},
+		{"dnsseed3.groestlcoin.org", true},
+		{"dnsseed4.groestlcoin.org", true},
 	},
 
 	// Chain parameters
@@ -399,10 +398,8 @@ var TestNet3Params = Params{
 	Net:         wire.TestNet3,
 	DefaultPort: "17777",
 	DNSSeeds: []DNSSeed{
-		{"testnet1.groestlcoin.org", false},
-		{"testnet2.groestlcoin.org", false},
-		{"testp2pool.groestlcoin.org", false},
-		{"testp2pool2.groestlcoin.org", false},
+		{"testnet-seed1.groestlcoin.org", true},
+		{"testnet-seed2.groestlcoin.org", true},
 	},
 
 	// Chain parameters
