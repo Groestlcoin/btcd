@@ -19,8 +19,9 @@ require (
 	golang.org/x/crypto v0.0.0-20170930174604-9419663f5a44
 )
 
+go 1.12
+
 replace (
 	github.com/btcsuite/btcd => ./
-	github.com/btcsuite/btcutil => github.com/Groestlcoin/grsutil v0.0.0-20190423003520-06c2672b9603
-
+	github.com/btcsuite/btcutil => github.com/Groestlcoin/grsutil v0.5.0-grsd-0-8
 )
