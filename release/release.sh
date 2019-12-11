@@ -21,7 +21,7 @@ fi
 go mod vendor
 tar -cvzf vendor.tar.gz vendor
 
-PACKAGE=btcd
+PACKAGE=grsd
 MAINDIR=$PACKAGE-$TAG
 mkdir -p $MAINDIR
 
@@ -35,9 +35,9 @@ gzip -f $PACKAGESRC > "$PACKAGESRC.gz"
 
 cd $MAINDIR
 
-# If BTCDBUILDSYS is set the default list is ignored. Useful to release
+# If GRSDBUILDSYS is set the default list is ignored. Useful to release
 # for a subset of systems/architectures.
-SYS=${BTCDBUILDSYS:-"
+SYS=${GRSDBUILDSYS:-"
         darwin-386
         darwin-amd64
         dragonfly-amd64
@@ -91,9 +91,16 @@ for i in $SYS; do
     mkdir $PACKAGE-$i-$TAG
     cd $PACKAGE-$i-$TAG
 
+    if [[ $OS = "windows" ]]; then
+        GRSD=grsd.exe
+        GRSCTL=grsctl.exe
+    else
+        GRSD=grsd
+        GRSCTL=grsctl
+    fi
     echo "Building:" $OS $ARCH $ARM
-    env CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH GOARM=$ARM go build -v -trimpath -ldflags="-s -w -buildid=" github.com/btcsuite/btcd
-    env CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH GOARM=$ARM go build -v -trimpath -ldflags="-s -w -buildid=" github.com/btcsuite/btcd/cmd/btcctl
+    env CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH GOARM=$ARM go build -v -trimpath -ldflags="-s -w -buildid=" -o $GRSD github.com/btcsuite/btcd
+    env CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH GOARM=$ARM go build -v -trimpath -ldflags="-s -w -buildid=" -o $GRSCTL github.com/btcsuite/btcd/cmd/btcctl
     cd ..
 
     if [[ $OS = "windows" ]]; then

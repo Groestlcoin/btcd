@@ -1,6 +1,6 @@
-# `btcd`'s Reproducible Build System
+# `grsd`'s Reproducible Build System
 
-This package contains the build script that the `btcd` project uses in order to
+This package contains the build script that the `grsd` project uses in order to
 build binaries for each new release. As of `go1.13`, with some new build flags,
 binaries are now reproducible, allowing developers to build the binary on
 distinct machines, and end up with a byte-for-byte identical binary. However,
@@ -17,12 +17,12 @@ release binaries. However, on Windows, the only way to build the release
 binaries at the moment is by using the Windows Subsystem Linux. One can build
 the release binaries following these steps:
 
-1. `git clone https://github.com/btcsuite/btcd.git
-2. `cd btcd`
-3. `./build/release/release.sh <TAG> # <TAG> is the name of the next
+1. `git clone https://github.com/Groestlcoin/grsd.git
+2. `cd grsd`
+3. `./release/release.sh <TAG> # <TAG> is the name of the next
    release/tag`
 
-This will then create a directory of the form `btcd-<TAG>` containing archives
+This will then create a directory of the form `grsd-<TAG>` containing archives
 of the release binaries for each supported operating system and architecture,
 and a manifest file containing the hash of each archive.
 
@@ -59,13 +59,13 @@ and `go` (matching the same version used in the release):
    hashes as done above, and note them down.
 5. Ensure `go` is installed, matching the same version as noted in the release
    notes. 
-6. Obtain a copy of `btcd`'s source code with `git clone
-   https://github.com/btcsuite/btcd` and checkout the source code of the
+6. Obtain a copy of `grsd`'s source code with `git clone
+   https://github.com/Groestlcoin/grsd` and checkout the source code of the
    release with `git checkout <TAG>`.
 7. Proceed to verify the tag with `git verify-tag <TAG>` and compile the
    binaries from source for the intended operating system and architecture with
-   `BTCDBUILDSYS=OS-ARCH ./build/release/release.sh <TAG>`.
-8. Extract the archive found in the `btcd-<TAG>` directory created by the
-   release script and recompute the `SHA256` hash of the release binaries (btcd
+   `GRSDBUILDSYS=OS-ARCH ./build/release/release.sh <TAG>`.
+8. Extract the archive found in the `grsd-<TAG>` directory created by the
+   release script and recompute the `SHA256` hash of the release binaries (grsd
    and btcctl) with `shasum -a 256 <filename>`. These should match __exactly__
    as the ones noted above.
