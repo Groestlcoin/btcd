@@ -17,7 +17,7 @@ release binaries. However, on Windows, the only way to build the release
 binaries at the moment is by using the Windows Subsystem Linux. One can build
 the release binaries following these steps:
 
-1. `git clone https://github.com/Groestlcoin/grsd.git
+1. `git clone https://github.com/Groestlcoin/grsd.git`
 2. `cd grsd`
 3. `./release/release.sh <TAG> # <TAG> is the name of the next
    release/tag`
@@ -67,5 +67,5 @@ and `go` (matching the same version used in the release):
    `GRSDBUILDSYS=OS-ARCH ./build/release/release.sh <TAG>`.
 8. Extract the archive found in the `grsd-<TAG>` directory created by the
    release script and recompute the `SHA256` hash of the release binaries (grsd
-   and btcctl) with `shasum -a 256 <filename>`. These should match __exactly__
+   and grsctl) with `shasum -a 256 <filename>`. These should match __exactly__
    as the ones noted above.
