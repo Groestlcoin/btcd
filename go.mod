@@ -23,5 +23,5 @@ go 1.12
 
 replace (
 	github.com/btcsuite/btcd => ./
-	github.com/btcsuite/btcutil => github.com/Groestlcoin/grsutil v0.5.0-grsd-0-8
+	github.com/btcsuite/btcutil => github.com/Groestlcoin/grsutil v0.5.0-grs2
 )
