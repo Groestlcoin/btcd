@@ -1,3 +1,9 @@
+grsd
+grsctl
+addblock
+findcheckpoint
+gencerts
+
 # Temp files
 *~
 
@@ -33,8 +39,6 @@ _testmain.go
 
 *.exe
 
-grsd
-grsctl
-addblock
-findcheckpoint
-gencerts
+# Code coverage files
+profile.tmp
+profile.cov

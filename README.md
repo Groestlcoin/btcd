@@ -15,7 +15,7 @@ very similar to it.
 
 ## Requirements
 
-[Go](http://golang.org) 1.12 or newer.
+[Go](http://golang.org) 1.14 or newer.
 
 ## Installation
 

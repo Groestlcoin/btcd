@@ -1,13 +1,17 @@
 #!/bin/bash
 
+# Copyright (c) 2016 Company 0, LLC.
+# Copyright (c) 2016-2020 The btcsuite developers
+# Use of this source code is governed by an ISC
+# license that can be found in the LICENSE file.
+
 # Simple bash script to build basic btcd tools for all the platforms we support
 # with the golang cross-compiler.
-#
-# Copyright (c) 2016 Company 0, LLC.
-# Use of this source code is governed by the ISC
-# license.
 
 set -e
+
+export TZ=UTC
+umask 022
 
 # If no tag specified, use date + version otherwise use tag.
 if [[ $1x = x ]]; then
@@ -18,8 +22,11 @@ else
     TAG=$1
 fi
 
+TAR_OPTS="-H pax --sort=name --mtime=1970-01-01 --owner=0 --group=0 --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime"
 go mod vendor
-tar -cvzf vendor.tar.gz vendor
+tar $TAR_OPTS -cvf vendor.tar vendor
+gzip -n6 vendor.tar
+shasum -a 256 vendor.tar.gz
 
 PACKAGE=grsd
 MAINDIR=$PACKAGE-$TAG
@@ -31,14 +38,14 @@ rm -r vendor
 
 PACKAGESRC="$MAINDIR/$PACKAGE-source-$TAG.tar"
 git archive -o $PACKAGESRC HEAD
-gzip -f $PACKAGESRC > "$PACKAGESRC.gz"
+gzip -fn6 $PACKAGESRC > $PACKAGESRC.gz
+shasum -a 256 $PACKAGESRC.gz
 
 cd $MAINDIR
 
 # If GRSDBUILDSYS is set the default list is ignored. Useful to release
 # for a subset of systems/architectures.
 SYS=${GRSDBUILDSYS:-"
-        darwin-386
         darwin-amd64
         dragonfly-amd64
         freebsd-386
@@ -69,11 +76,7 @@ SYS=${GRSDBUILDSYS:-"
         windows-386
         windows-amd64
 "}
-
-# Use the first element of $GOPATH in the case where GOPATH is a list
-# (something that is totally allowed).
-PKG="github.com/btcsuite/btcd"
-COMMIT=$(git describe --abbrev=40 --dirty)
+#SYS="linux-amd64 windows-amd64"
 
 for i in $SYS; do
     OS=$(echo $i | cut -f1 -d-)
@@ -104,12 +107,16 @@ for i in $SYS; do
     cd ..
 
     if [[ $OS = "windows" ]]; then
-	zip -r $PACKAGE-$i-$TAG.zip $PACKAGE-$i-$TAG
+        zip -X -r $PACKAGE-$i-$TAG.zip $PACKAGE-$i-$TAG
+        strip-nondeterminism $PACKAGE-$i-$TAG.zip
     else
-	tar -cvzf $PACKAGE-$i-$TAG.tar.gz $PACKAGE-$i-$TAG
+        tar $TAR_OPTS -cvf $PACKAGE-$i-$TAG.tar $PACKAGE-$i-$TAG
+        gzip -fn6 $PACKAGE-$i-$TAG.tar
     fi
 
     rm -r $PACKAGE-$i-$TAG
+    shasum -a 256 $PACKAGE-$i-$TAG.*
 done
 
 shasum -a 256 * > manifest-$TAG.txt
+cat manifest-$TAG.txt

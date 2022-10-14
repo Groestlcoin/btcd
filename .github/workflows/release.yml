@@ -1,0 +1,34 @@
+# vim: ts=2 sw=2 et
+name: Release
+on:
+  push:
+    tags:
+      - 'v0*'
+jobs:
+  build:
+    name: Build releases
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        go: [1.16]
+    steps:
+      - name: Install strip-nondeterminism
+        run: sudo apt-get install -y strip-nondeterminism
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Check out source
+        uses: actions/checkout@v2
+      - name: Build releases
+        env:
+          GO111MODULE: "on"
+        run: |
+          git config --global url."https://gh:${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          ./release/release.sh $GITHUB_REF_NAME
+
+      - name: Upload releases
+        uses: actions/upload-artifact@v3
+        with:
+          name: grsd-${{ github.sha }}
+          path: grsd-*/

@@ -21,46 +21,95 @@ Usage:
   grsd [OPTIONS]
 
 Application Options:
-  -V, --version               Display version information and exit
-  -C, --configfile=           Path to configuration file
-                              (/home/yura/.grsd/grsd.conf)
-  -b, --datadir=              Directory to store data (/home/yura/.grsd/data)
-      --logdir=               Directory to log output. (/home/yura/.grsd/logs)
+      --addcheckpoint=        Add a custom checkpoint.  Format:
+                              '<height>:<hash>'
   -a, --addpeer=              Add a peer to connect with at startup
+      --addrindex             Maintain a full address-based transaction index
+                              which makes the searchrawtransactions RPC
+                              available
+      --agentblacklist=       A comma separated list of user-agent substrings
+                              which will cause grsd to reject any peers whose
+                              user-agent contains any of the blacklisted
+                              substrings.
+      --agentwhitelist=       A comma separated list of user-agent substrings
+                              which will cause grsd to require all peers'
+                              user-agents to contain one of the whitelisted
+                              substrings. The blacklist is applied before the
+                              blacklist, and an empty whitelist will allow all
+                              agents that do not fail the blacklist.
+      --banduration=          How long to ban misbehaving peers.  Valid time
+                              units are {s, m, h}.  Minimum 1 second (default:
+                              24h0m0s)
+      --banthreshold=         Maximum allowed ban score before disconnecting
+                              and banning misbehaving peers. (default: 100)
+      --blockmaxsize=         Maximum block size in bytes to be used when
+                              creating a block (default: 750000)
+      --blockminsize=         Mininum block size in bytes to be used when
+                              creating a block
+      --blockmaxweight=       Maximum block weight to be used when creating a
+                              block (default: 3000000)
+      --blockminweight=       Mininum block weight to be used when creating a
+                              block
+      --blockprioritysize=    Size in bytes for high-priority/low-fee
+                              transactions when creating a block (default:
+                              50000)
+      --blocksonly            Do not accept transactions from remote peers.
+  -C, --configfile=           Path to configuration file
       --connect=              Connect only to the specified peers at startup
+      --cpuprofile=           Write CPU profile to the specified file
+  -b, --datadir=              Directory to store data
+      --dbtype=               Database backend to use for the Block Chain
+                              (default: ffldb)
+  -d, --debuglevel=           Logging level for all subsystems {trace, debug,
+                              info, warn, error, critical} -- You may also
+                              specify
+                              <subsystem>=<level>,<subsystem2>=<level>,... to
+                              set the log level for individual subsystems --
+                              Use show to list available subsystems (default:
+                              info)
+      --dropaddrindex         Deletes the address-based transaction index from
+                              the database on start up and then exits.
+      --dropcfindex           Deletes the index used for committed filtering
+                              (CF) support from the database on start up and
+                              then exits.
+      --droptxindex           Deletes the hash-based transaction index from the
+                              database on start up and then exits.
+      --externalip=           Add an ip to the list of local addresses we claim
+                              to listen on to peers
+      --generate              Generate (mine) groestlcoins using the CPU
+      --limitfreerelay=       Limit relay of transactions with no transaction
+                              fee to the given amount in thousands of bytes per
+                              minute (default: 15)
+      --listen=               Add an interface/port to listen for connections
+                              (default all interfaces port: 1331, testnet:
+                              17777)
+      --logdir=               Directory to log output.
+      --maxorphantx=          Max number of orphan transactions to keep in
+                              memory (default: 100)
+      --maxpeers=             Max number of inbound and outbound peers
+                              (default: 125)
+      --miningaddr=           Add the specified payment address to the list of
+                              addresses to use for generated blocks -- At least
+                              one address is required if the generate option is
+                              set
+      --minrelaytxfee=        The minimum transaction fee in GRS/kB to be
+                              considered a non-zero fee. (default: 1e-05)
+      --nobanning             Disable banning of misbehaving peers
+      --nocfilters            Disable committed filtering (CF) support
+      --nocheckpoints         Disable built-in checkpoints.  Don't do this
+                              unless you know what you're doing.
+      --nodnsseed             Disable DNS seeding for peers
       --nolisten              Disable listening for incoming connections --
                               NOTE: Listening is automatically disabled if the
                               --connect or --proxy options are used without
                               also specifying listen interfaces via --listen
-      --listen=               Add an interface/port to listen for connections
-                              (default all interfaces port: 1331, testnet:
-                              17777)
-      --maxpeers=             Max number of inbound and outbound peers (125)
-      --nobanning             Disable banning of misbehaving peers
-      --banduration=          How long to ban misbehaving peers.  Valid time
-                              units are {s, m, h}.  Minimum 1 second (24h0m0s)
-      --banthreshold=         Maximum allowed ban score before disconnecting
-                              and banning misbehaving peers. (100)
-      --whitelist=            Add an IP network or IP that will not be banned.
-                              (eg. 192.168.1.0/24 or ::1)
-  -u, --rpcuser=              Username for RPC connections (yourrpcuser)
-  -P, --rpcpass=              Password for RPC connections
-      --rpclimituser=         Username for limited RPC connections
-      --rpclimitpass=         Password for limited RPC connections
-      --rpclisten=            Add an interface/port to listen for RPC
-                              connections (default port: 1444, testnet: 17764)
-      --rpccert=              File containing the certificate file
-                              (/home/yura/.grsd/rpc.cert)
-      --rpckey=               File containing the certificate key
-                              (/home/yura/.grsd/rpc.key)
-      --rpcmaxclients=        Max number of RPC clients for standard
-                              connections (10)
-      --rpcmaxwebsockets=     Max number of RPC websocket connections (25)
-      --rpcmaxconcurrentreqs= Max number of concurrent RPC requests that may be
-                              processed concurrently (20)
-      --rpcquirks             Mirror some JSON-RPC quirks of Groestlcoin Core
-                              -- NOTE: Discouraged unless interoperability
-                              issues need to be worked around
+      --noonion               Disable connecting to tor hidden services
+      --nopeerbloomfilters    Disable bloom filtering support
+      --norelaypriority       Do not require free or low-fee transactions to
+                              have high priority for relaying
+      --nowinservice          Do not start as a background service on Windows
+                              -- NOTE: This flag only works on the command
+                              line, not in the config file
       --norpc                 Disable built-in RPC server -- NOTE: The RPC
                               server is disabled by default if no
                               rpcuser/rpcpass or rpclimituser/rpclimitpass is
@@ -68,88 +117,65 @@ Application Options:
       --notls                 Disable TLS for the RPC server -- NOTE: This is
                               only allowed if the RPC server is bound to
                               localhost
-      --nodnsseed             Disable DNS seeding for peers
-      --externalip=           Add an ip to the list of local addresses we claim
-                              to listen on to peers
-      --proxy=                Connect via SOCKS5 proxy (eg. 127.0.0.1:9050)
-      --proxyuser=            Username for proxy server
-      --proxypass=            Password for proxy server
       --onion=                Connect to tor hidden services via SOCKS5 proxy
                               (eg. 127.0.0.1:9050)
-      --onionuser=            Username for onion proxy server
       --onionpass=            Password for onion proxy server
-      --noonion               Disable connecting to tor hidden services
-      --torisolation          Enable Tor stream isolation by randomizing user
-                              credentials for each connection.
-      --testnet               Use the test network
-      --regtest               Use the regression test network
-      --simnet                Use the simulation test network
-      --addcheckpoint=        Add a custom checkpoint.  Format:
-                              '<height>:<hash>'
-      --nocheckpoints         Disable built-in checkpoints.  Don't do this
-                              unless you know what you're doing.
-      --dbtype=               Database backend to use for the Block Chain
-                              (ffldb)
+      --onionuser=            Username for onion proxy server
       --profile=              Enable HTTP profiling on given port -- NOTE port
                               must be between 1024 and 65536
-      --cpuprofile=           Write CPU profile to the specified file
-  -d, --debuglevel=           Logging level for all subsystems {trace, debug,
-                              info, warn, error, critical} -- You may also
-                              specify
-                              <subsystem>=<level>,<subsystem2>=<level>,... to
-                              set the log level for individual subsystems --
-                              Use show to list available subsystems (info)
-      --upnp                  Use UPnP to map our listening port outside of NAT
-      --minrelaytxfee=        The minimum transaction fee in GRS/kB to be
-                              considered a non-zero fee. (1e-05)
-      --limitfreerelay=       Limit relay of transactions with no transaction
-                              fee to the given amount in thousands of bytes per
-                              minute (15)
-      --norelaypriority       Do not require free or low-fee transactions to
-                              have high priority for relaying
-      --trickleinterval=      Minimum time between attempts to send new
-                              inventory to a connected peer (10s)
-      --maxorphantx=          Max number of orphan transactions to keep in
-                              memory (100)
-      --generate              Generate (mine) groestlcoins using the CPU
-      --miningaddr=           Add the specified payment address to the list of
-                              addresses to use for generated blocks -- At least
-                              one address is required if the generate option is
-                              set
-      --blockminsize=         Mininum block size in bytes to be used when
-                              creating a block
-      --blockmaxsize=         Maximum block size in bytes to be used when
-                              creating a block (750000)
-      --blockminweight=       Mininum block weight to be used when creating a
-                              block
-      --blockmaxweight=       Maximum block weight to be used when creating a
-                              block (3000000)
-      --blockprioritysize=    Size in bytes for high-priority/low-fee
-                              transactions when creating a block (50000)
-      --uacomment=            Comment to add to the user agent -- See BIP 14
-                              for more information.
-      --nopeerbloomfilters    Disable bloom filtering support
-      --nocfilters            Disable committed filtering (CF) support
-      --dropcfindex           Deletes the index used for committed filtering
-                              (CF) support from the database on start up and
-                              then exits.
+      --proxy=                Connect via SOCKS5 proxy (eg. 127.0.0.1:9050)
+      --proxypass=            Password for proxy server
+      --proxyuser=            Username for proxy server
+      --regtest               Use the regression test network
+      --rejectnonstd          Reject non-standard transactions regardless of
+                              the default settings for the active network.
+      --rejectreplacement     Reject transactions that attempt to replace
+                              existing transactions within the mempool through
+                              the Replace-By-Fee (RBF) signaling policy.
+      --relaynonstd           Relay non-standard transactions regardless of the
+                              default settings for the active network.
+      --rpccert=              File containing the certificate file
+      --rpckey=               File containing the certificate key
+      --rpclimitpass=         Password for limited RPC connections
+      --rpclimituser=         Username for limited RPC connections
+      --rpclisten=            Add an interface/port to listen for RPC
+                              connections (default port: 1444, testnet: 17764)
+      --rpcmaxclients=        Max number of RPC clients for standard
+                              connections (default: 10)
+      --rpcmaxconcurrentreqs= Max number of concurrent RPC requests that may be
+                              processed concurrently (default: 20)
+      --rpcmaxwebsockets=     Max number of RPC websocket connections (default:
+                              25)
+      --rpcquirks             Mirror some JSON-RPC quirks of Groestlcoin Core
+                              -- NOTE: Discouraged unless interoperability
+                              issues need to be worked around
+  -P, --rpcpass=              Password for RPC connections
+  -u, --rpcuser=              Username for RPC connections
       --sigcachemaxsize=      The maximum number of entries in the signature
-                              verification cache (100000)
-      --blocksonly            Do not accept transactions from remote peers.
+                              verification cache (default: 100000)
+      --simnet                Use the simulation test network
+      --signet                Use the signet test network
+      --signetchallenge=      Connect to a custom signet network defined by
+                              this challenge instead of using the global
+                              default signet test network -- Can be specified
+                              multiple times
+      --signetseednode=       Specify a seed node for the signet network
+                              instead of using the global default signet
+                              network seed nodes
+      --testnet               Use the test network
+      --torisolation          Enable Tor stream isolation by randomizing user
+                              credentials for each connection.
+      --trickleinterval=      Minimum time between attempts to send new
+                              inventory to a connected peer (default: 10s)
       --txindex               Maintain a full hash-based transaction index
                               which makes all transactions available via the
                               getrawtransaction RPC
-      --droptxindex           Deletes the hash-based transaction index from the
-                              database on start up and then exits.
-      --addrindex             Maintain a full address-based transaction index
-                              which makes the searchrawtransactions RPC
-                              available
-      --dropaddrindex         Deletes the address-based transaction index from
-                              the database on start up and then exits.
-      --relaynonstd           Relay non-standard transactions regardless of the
-                              default settings for the active network.
-      --rejectnonstd          Reject non-standard transactions regardless of
-                              the default settings for the active network.
+      --uacomment=            Comment to add to the user agent -- See BIP 14
+                              for more information.
+      --upnp                  Use UPnP to map our listening port outside of NAT
+  -V, --version               Display version information and exit
+      --whitelist=            Add an IP network or IP that will not be banned.
+                              (eg. 192.168.1.0/24 or ::1)
 
 Help Options:
   -h, --help                  Show this help message

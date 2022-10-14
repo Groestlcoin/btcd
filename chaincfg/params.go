@@ -5,6 +5,8 @@
 package chaincfg
 
 import (
+	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"math"
 	"math/big"
@@ -38,6 +40,24 @@ var (
 	// simNetPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the simulation test network.  It is the value 2^255 - 1.
 	simNetPowLimit = new(big.Int).Sub(new(big.Int).Lsh(bigOne, 255), bigOne)
+
+	// sigNetPowLimit is the highest proof of work value a bitcoin block can
+	// have for the signet test network. It is the value 0x0377ae << 216.
+	sigNetPowLimit = new(big.Int).Lsh(new(big.Int).SetInt64(0x0377ae), 216)
+
+	// DefaultSignetChallenge is the byte representation of the signet
+	// challenge for the default (public, Taproot enabled) signet network.
+	DefaultSignetChallenge, _ = hex.DecodeString(
+		"51210379156a07950b904a74e0d276e6d96bb61c4e0f89c9f69d3a5f75f161c9f8684051ae",
+	)
+
+	// DefaultSignetDNSSeeds is the list of seed nodes for the default
+	// (public, Taproot enabled) signet network.
+	DefaultSignetDNSSeeds = []DNSSeed{
+		{"198.199.105.43", false},
+		{"2604:a880:1:20::96:6001", false},
+		{"ubmgcth2ngfb7qapyrkpnn3i6p2dmu76zvd3hfs2mw3u4t54v2qa66id.onion", false},
+	}
 )
 
 // Checkpoint identifies a known good point in the block chain.  Using
@@ -96,7 +116,10 @@ const (
 	// includes the deployment of BIPS 141, 142, 144, 145, 147 and 173.
 	DeploymentSegwit
 
-	DeploymentBIP65
+	// DeploymentTaproot defines the rule change deployment ID for the
+	// Taproot (+Schnorr) soft-fork package. The taproot package includes
+	// the deployment of BIPS 340, 341 and 342.
+	DeploymentTaproot
 
 	// NOTE: DefinedDeployments must always come last since it is used to
 	// determine how many defined deployments there currently are.
@@ -259,6 +282,7 @@ var MainNetParams = Params{
 		{1000000, newHashFromStr("000000000df8560f2612d5f28b52ed1cf81b0f87ac0c9c7242cbcf721ca6854a")},
 		{2000000, newHashFromStr("00000000000434d5b8d1c3308df7b6e3fd773657dfb28f5dd2f70854ef94cc66")},
 		{2372000, newHashFromStr("000000000000117a4710e01e4f86d883ca491b96efa0b4f2139c4d49a9437f10")},
+		{2785000, newHashFromStr("00000000000013811b5078b06f3b98aaad29b94f09d047144e473de35f481474")},
 	},
 
 	// Consensus rule change deployments.
@@ -280,11 +304,6 @@ var MainNetParams = Params{
 		},
 		DeploymentSegwit: {
 			BitNumber:  1,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
-		},
-		DeploymentBIP65: {
-			BitNumber:  5,
 			StartTime:  1484956800, // Jan 21, 2017
 			ExpireTime: 1498003200, // Jun 21, 2017
 		},
@@ -362,11 +381,6 @@ var RegressionNetParams = Params{
 			StartTime:  0,             // Always available for vote
 			ExpireTime: math.MaxInt64, // Never expires.
 		},
-		DeploymentBIP65: {
-			BitNumber:  5,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
-		},
 	},
 
 	// Mempool parameters
@@ -423,6 +437,7 @@ var TestNet3Params = Params{
 	Checkpoints: []Checkpoint{
 		{50000, newHashFromStr("00000081951486bb535f8cffec8ac0641bd24b814f89641f6cc2cad737f18950")},
 		{887766, newHashFromStr("000000cc069338b7cd182dbf3e98dedd80c9ce85f26b78daaec0a6c964ffa501")},
+		{1341000, newHashFromStr("00000022fb2732f1c237f9d90e5070e57500b19e9c65f51a2fb920b6580fc219")},
 	},
 
 	// Consensus rule change deployments.
@@ -444,11 +459,6 @@ var TestNet3Params = Params{
 		},
 		DeploymentSegwit: {
 			BitNumber:  1,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
-		},
-		DeploymentBIP65: {
-			BitNumber:  5,
 			StartTime:  1484956800, // Jan 21, 2017
 			ExpireTime: 1498003200, // Jun 21, 2017
 		},
@@ -530,11 +540,6 @@ var SimNetParams = Params{
 			StartTime:  0,             // Always available for vote
 			ExpireTime: math.MaxInt64, // Never expires.
 		},
-		DeploymentBIP65: {
-			BitNumber:  5,
-			StartTime:  1484956800, // Jan 21, 2017
-			ExpireTime: 1498003200, // Jun 21, 2017
-		},
 	},
 
 	// Mempool parameters
@@ -558,6 +563,105 @@ var SimNetParams = Params{
 	HDCoinType: 1,
 }
 
+// SigNetParams defines the network parameters for the default public signet
+// Bitcoin network. Not to be confused with the regression test network, this
+// network is sometimes simply called "signet" or "taproot signet".
+var SigNetParams = CustomSignetParams(
+	DefaultSignetChallenge, DefaultSignetDNSSeeds,
+)
+
+// CustomSignetParams creates network parameters for a custom signet network
+// from a challenge. The challenge is the binary compiled version of the block
+// challenge script.
+func CustomSignetParams(challenge []byte, dnsSeeds []DNSSeed) Params {
+	// The message start is defined as the first four bytes of the sha256d
+	// of the challenge script, as a single push (i.e. prefixed with the
+	// challenge script length).
+	challengeLength := byte(len(challenge))
+	hashDouble := chainhash.HashB(
+		append([]byte{challengeLength}, challenge...),
+	)
+
+	// We use little endian encoding of the hash prefix to be in line with
+	// the other wire network identities.
+	net := binary.LittleEndian.Uint32(hashDouble[0:4])
+	return Params{
+		Name:        "signet",
+		Net:         wire.BitcoinNet(net),
+		DefaultPort: "31331",
+		DNSSeeds:    dnsSeeds,
+
+		// Chain parameters
+		GenesisBlock:             &sigNetGenesisBlock,
+		GenesisHash:              &sigNetGenesisHash,
+		PowLimit:                 sigNetPowLimit,
+		PowLimitBits:             0x1e0377ae,
+		BIP0034Height:            1,
+		BIP0065Height:            1,
+		BIP0066Height:            1,
+		DGW3SwitchHeight:         100000,
+		CoinbaseMaturity:         100,
+		TargetTimespan:           time.Minute * 24, // 24 minutes
+		TargetTimePerBlock:       time.Minute,      // 1 minutes
+		RetargetAdjustmentFactor: 3,
+		ReduceMinDifficulty:      false,
+		MinDiffReductionTime:     0,
+		GenerateSupported:        false,
+
+		// Checkpoints ordered from oldest to newest.
+		Checkpoints: nil,
+
+		// Consensus rule change deployments.
+		//
+		// The miner confirmation window is defined as:
+		//   target proof of work timespan / target proof of work spacing
+		RuleChangeActivationThreshold: 1916, // 95% of 2016
+		MinerConfirmationWindow:       2016,
+		Deployments: [DefinedDeployments]ConsensusDeployment{
+			DeploymentTestDummy: {
+				BitNumber:  28,
+				StartTime:  1199145601, // January 1, 2008 UTC
+				ExpireTime: 1230767999, // December 31, 2008 UTC
+			},
+			DeploymentCSV: {
+				BitNumber:  29,
+				StartTime:  0,             // Always available for vote
+				ExpireTime: math.MaxInt64, // Never expires
+			},
+			DeploymentSegwit: {
+				BitNumber:  29,
+				StartTime:  0,             // Always available for vote
+				ExpireTime: math.MaxInt64, // Never expires.
+			},
+			DeploymentTaproot: {
+				BitNumber:  29,
+				StartTime:  0,             // Always available for vote
+				ExpireTime: math.MaxInt64, // Never expires.
+			},
+		},
+
+		// Mempool parameters
+		RelayNonStdTxs: false,
+
+		// Human-readable part for Bech32 encoded segwit addresses, as defined in
+		// BIP 173.
+		Bech32HRPSegwit: "tgrs", // always tb for test net
+
+		// Address encoding magics
+		PubKeyHashAddrID: 0x6f, // starts with m or n
+		ScriptHashAddrID: 0xc4, // starts with 2
+		PrivateKeyID:     0xef, // starts with 9 (uncompressed) or c (compressed)
+
+		// BIP32 hierarchical deterministic extended key magics
+		HDPrivateKeyID: [4]byte{0x04, 0x35, 0x83, 0x94}, // starts with tprv
+		HDPublicKeyID:  [4]byte{0x04, 0x35, 0x87, 0xcf}, // starts with tpub
+
+		// BIP44 coin type used in the hierarchical deterministic path for
+		// address generation.
+		HDCoinType: 1,
+	}
+}
+
 var (
 	// ErrDuplicateNet describes an error where the parameters for a Bitcoin
 	// network could not be set due to the network already being a standard
@@ -568,6 +672,10 @@ var (
 	// is intended to identify the network for a hierarchical deterministic
 	// private extended key is not registered.
 	ErrUnknownHDKeyID = errors.New("unknown hd private extended key bytes")
+
+	// ErrInvalidHDKeyID describes an error where the provided hierarchical
+	// deterministic version bytes, or hd key id, is malformed.
+	ErrInvalidHDKeyID = errors.New("invalid hd extended key version bytes")
 )
 
 var (
@@ -599,7 +707,11 @@ func Register(params *Params) error {
 	registeredNets[params.Net] = struct{}{}
 	pubKeyHashAddrIDs[params.PubKeyHashAddrID] = struct{}{}
 	scriptHashAddrIDs[params.ScriptHashAddrID] = struct{}{}
-	hdPrivToPubKeyIDs[params.HDPrivateKeyID] = params.HDPublicKeyID[:]
+
+	err := RegisterHDKeyID(params.HDPublicKeyID[:], params.HDPrivateKeyID[:])
+	if err != nil {
+		return err
+	}
 
 	// A valid Bech32 encoded segwit address always has as prefix the
 	// human-readable part for the given net followed by '1'.
@@ -644,6 +756,29 @@ func IsBech32SegwitPrefix(prefix string) bool {
 	prefix = strings.ToLower(prefix)
 	_, ok := bech32SegwitPrefixes[prefix]
 	return ok
+}
+
+// RegisterHDKeyID registers a public and private hierarchical deterministic
+// extended key ID pair.
+//
+// Non-standard HD version bytes, such as the ones documented in SLIP-0132,
+// should be registered using this method for library packages to lookup key
+// IDs (aka HD version bytes). When the provided key IDs are invalid, the
+// ErrInvalidHDKeyID error will be returned.
+//
+// Reference:
+//   SLIP-0132 : Registered HD version bytes for BIP-0032
+//   https://github.com/satoshilabs/slips/blob/master/slip-0132.md
+func RegisterHDKeyID(hdPublicKeyID []byte, hdPrivateKeyID []byte) error {
+	if len(hdPublicKeyID) != 4 || len(hdPrivateKeyID) != 4 {
+		return ErrInvalidHDKeyID
+	}
+
+	var keyID [4]byte
+	copy(keyID[:], hdPrivateKeyID)
+	hdPrivToPubKeyIDs[keyID] = hdPublicKeyID
+
+	return nil
 }
 
 // HDPrivateKeyToPublicKeyID accepts a private hierarchical deterministic

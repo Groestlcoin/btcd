@@ -47,7 +47,7 @@ const (
 
 	bytePerKb = 1000
 
-	btcPerSatoshi = 1E-8
+	btcPerSatoshi = 1e-8
 )
 
 var (
@@ -563,7 +563,7 @@ func (ef *FeeEstimator) EstimateFee(numBlocks uint32) (BtcPerKilobyte, error) {
 	if numBlocks > estimateFeeDepth {
 		return -1, fmt.Errorf(
 			"can only estimate fees for up to %d blocks from now",
-			estimateFeeBinSize)
+			estimateFeeDepth)
 	}
 
 	// If there are no cached results, generate them.
